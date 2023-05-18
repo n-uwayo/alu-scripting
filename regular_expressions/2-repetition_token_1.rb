@@ -1,2 +1,2 @@
 #!/usr/bin/env ruby
-puts ARGV[0].scan(/\b[A-Z]{3}\b/).join
+puts ARGV[0].scan(/\bh?[bt]{1,3}n\b/).join
