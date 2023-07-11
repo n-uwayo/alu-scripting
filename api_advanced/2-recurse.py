@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 """
-queries the Reddit API
+Recursive function that queries the Reddit API and returns
+a list containing the titles of all hot articles for a given subreddit.
+If no results are found for the given subreddit,
+the function should return None.
 """
 
 import requests
@@ -8,13 +11,15 @@ import requests
 
 def recurse(subreddit, hot_list=[], after=""):
     """
-   Returns a list containing the titles of 
-   all hot articles for a given subreddit.
+    Queries the Reddit API and returns
+    a list containing the titles of all hot articles for a given subreddit.
+
+    - If not a valid subreddit, return None.
     """
     req = requests.get(
         "https://www.reddit.com/r/{}/hot.json".format(subreddit),
-        header={"User-Agent": "Mozilla"},
-        parms={"after": after},
+        headers={"User-Agent": "Custom"},
+        params={"after": after},
     )
 
     if req.status_code == 200:
@@ -30,3 +35,4 @@ def recurse(subreddit, hot_list=[], after=""):
             return recurse(subreddit, hot_list, after)
     else:
         return None
+    

@@ -8,7 +8,7 @@ def count_words(subreddit, word_list, word_count=[], page_after=None):
     Prints the count of the given words present in the title of the
     subreddit's hottest articles.
     """
-    header = {'User-Agent': 'Mozilla'}
+    headers = {'User-Agent': 'HolbertonSchool'}
 
     word_list = [word.lower() for word in word_list]
 
@@ -18,9 +18,9 @@ def count_words(subreddit, word_list, word_count=[], page_after=None):
 
     if page_after is None:
         url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
-        rq = get(url, header=header, allow_redirects=False)
-        if rq.status_code == 200:
-            for child in rq.json()['data']['children']:
+        r = get(url, headers=headers, allow_redirects=False)
+        if r.status_code == 200:
+            for child in r.json()['data']['children']:
                 i = 0
                 for i in range(len(word_list)):
                     for word in [w for w in child['data']['title'].split()]:
@@ -29,17 +29,17 @@ def count_words(subreddit, word_list, word_count=[], page_after=None):
                             word_count[i] += 1
                     i += 1
 
-            if rq.json()['data']['after'] is not None:
+            if r.json()['data']['after'] is not None:
                 count_words(subreddit, word_list,
-                            word_count, rq.json()['data']['after'])
+                            word_count, r.json()['data']['after'])
     else:
         url = ('https://www.reddit.com/r/{}/hot.json?after={}'
                .format(subreddit,
                        page_after))
-        rq = get(url, header=header, allow_redirects=False)
+        r = get(url, headers=headers, allow_redirects=False)
 
-        if rq.status_code == 200:
-            for child in rq.json()['data']['children']:
+        if r.status_code == 200:
+            for child in r.json()['data']['children']:
                 i = 0
                 for i in range(len(word_list)):
                     for word in [w for w in child['data']['title'].split()]:
@@ -47,9 +47,9 @@ def count_words(subreddit, word_list, word_count=[], page_after=None):
                         if word_list[i] == word:
                             word_count[i] += 1
                     i += 1
-            if rq.json()['data']['after'] is not None:
+            if r.json()['data']['after'] is not None:
                 count_words(subreddit, word_list,
-                            word_count, rq.json()['data']['after'])
+                            word_count, r.json()['data']['after'])
             else:
                 dicto = {}
                 for key_word in list(set(word_list)):
