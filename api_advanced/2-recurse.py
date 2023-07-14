@@ -1,10 +1,10 @@
 #!/usr/bin/python3
-"""Contains recurse function"""
+"""recurse function"""
 import requests
 
 
 def recurse(subreddit, hot_list=[], after="", count=0):
-    """Returns a list of titles of all hot posts on a given subreddit."""
+    """Returns a list of titles."""
     url = "https://www.reddit.com/r/{}/hot/.json".format(subreddit)
     headers = {
         "User-Agent": "0x16-api_advanced:project:\
