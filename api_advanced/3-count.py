@@ -1,63 +1,51 @@
 #!/usr/bin/python3
-""" Module for storing the count_words function. """
-from requests import get
+""" 3-count.py """
+import json
+import requests
 
 
-def count_words(subreddit, wrd_list, word_count=[], page_after=None):
-    """
-    Prints the count of the given words present in the title of the
-    subreddit's hottest articles.
-    """
-    headers = {'User-Agent': 'Mozilla/5.0'}
+def count_words(subreddit, word_list, after="", count=[]):
+    """ Prints a sorted count of given keywords """
 
-    wrd_list = [word.lower() for word in wrd_list]
+    if after == "":
+        count = [0] * len(word_list)
 
-    if bool(word_count) is False:
-        for word in wrd_list:
-            word_count.append(0)
+    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
+    request = requests.get(
+        url,
+        params={'after': after},
+        allow_redirects=False,
+        headers={'User-Agent': 'Mozilla/5.0'}
+    )
 
-    if page_after is None:
-        url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
-        r = get(url, headers=headers, allow_redirects=False)
-        if r.status_code == 200:
-            for child in r.json()['data']['children']:
-                i = 0
-                for i in range(len(wrd_list)):
-                    for word in [w for w in child['data']['title'].split()]:
-                        word = word.lower()
-                        if wrd_list[i] == word:
-                            word_count[i] += 1
-                    i += 1
+    if request.status_code == 200:
+        data = request.json()
 
-            if r.json()['data']['after'] is not None:
-                count_words(subreddit, wrd_list,
-                            word_count, r.json()['data']['after'])
-    else:
-        url = ('https://www.reddit.com/r/{}/hot.json?after={}'
-               .format(subreddit,
-                       page_after))
-        r = get(url, headers=headers, allow_redirects=False)
+        for topic in data['data']['children']:
+            for word in topic['data']['title'].split():
+                for i in range(len(word_list)):
+                    if word_list[i].lower() == word.lower():
+                        count[i] += 1
 
-        if r.status_code == 200:
-            for child in r.json()['data']['children']:
-                i = 0
-                for i in range(len(wrd_list)):
-                    for word in [w for w in child['data']['title'].split()]:
-                        word = word.lower()
-                        if wrd_list[i] == word:
-                            word_count[i] += 1
-                    i += 1
-            if r.json()['data']['after'] is not None:
-                count_words(subreddit, wrd_list,
-                            word_count, r.json()['data']['after'])
-            else:
-                dicto = {}
-                for key_word in list(set(wrd_list)):
-                    i = wrd_list.index(key_word)
-                    if word_count[i] != 0:
-                        dicto[wrd_list[i]] = (word_count[i] *
-                                               wrd_list.count(wrd_list[i]))
+        after = data['data']['after']
+        if after is None:
+            save = []
+            for i in range(len(word_list)):
+                for j in range(i + 1, len(word_list)):
+                    if word_list[i].lower() == word_list[j].lower():
+                        save.append(j)
+                        count[i] += count[j]
 
-                for key, value in sorted(dicto.items(),
-                                         key=lambda x: (-x[1], x[0])):
-                    print('{}: {}'.format(key, value))
+            for i in range(len(word_list)):
+                for j in range(i, len(word_list)):
+                    if (count[j] > count[i] or
+                            (word_list[i] > word_list[j] and
+                             count[j] == count[i])):
+                        count[i], count[j] = count[j], count[i]
+                        word_list[i], word_list[j] = word_list[j], word_list[i]
+
+            for i in range(len(word_list)):
+                if (count[i] > 0) and i not in save:
+                    print("{}: {}".format(word_list[i].lower(), count[i]))
+        else:
+            count_words(subreddit, word_list, after, count)
