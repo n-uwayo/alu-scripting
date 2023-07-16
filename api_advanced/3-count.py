@@ -4,10 +4,10 @@ import json
 import requests
 
 
-def count_words(subreddit, word_list, after="", count=[]):
+def count_words(subreddit, word_list, after="", count=None):
     """ prints a sorted count of given keywords """
 
-    if after == "":
+    if count is None:
         count = [0] * len(word_list)
 
     url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
@@ -34,20 +34,9 @@ def count_words(subreddit, word_list, after="", count=[]):
                         save.append(j)
                         count[i] += count[j]
 
-            for i in range(len(word_list)):
-                for j in range(i, len(word_list)):
-                    if (count[j] > count[i] or
-                            (word_list[i] > word_list[j] and
-                             count[j] == count[i])):
-                        aux = count[i]
-                        count[i] = count[j]
-                        count[j] = aux
-                        aux = word_list[i]
-                        word_list[i] = word_list[j]
-                        word_list[j] = aux
-
-            for i in range(len(word_list)):
-                if (count[i] > 0) and i not in save:
-                    print("{}: {}".format(word_list[i].lower(), count[i]))
+            sorted_counts = sorted(zip(word_list, count), key=lambda x: (-x[1], x[0]))
+            for word, count in sorted_counts:
+                if count > 0 and word_list.index(word) not in save:
+                    print("{}: {}".format(word.lower(), count))
         else:
             count_words(subreddit, word_list, after, count)
